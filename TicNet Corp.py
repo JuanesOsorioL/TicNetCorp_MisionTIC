@@ -69,6 +69,7 @@ if input("Ingrese su nombre de usuario: ") == usuarioGuardado and input("Ingrese
                         continue
                     else:
                         os.system('cls')
+                        contadorFallas = 4
                         print("Error")
                         continue
                 else:
