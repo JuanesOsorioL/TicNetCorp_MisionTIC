@@ -1,3 +1,4 @@
+import math
 import os
 
 usuarioGuardado = "52212"
@@ -26,17 +27,16 @@ def updateMenu(position):
 
 
 def msjOption(option):
-    # contadorFallas = 0
     os.system('cls')
     print(f"Usted ha elegido la opción {option}")
     contador = 4
-    # contadorFallas = 4
     return contador
 
 
 ###########inicio reto3 #######
 coordenadas = []
-#coordenadas = [[6.088, -75.888], [6.100, -75.999], [6.200, -76.000]]
+# coordenadas = [[6.088, -75.888], [6.100, -75.999], [6.200, -76.000]]
+#coordenadas = [[6.183, -75.973], [6.188, -75.974], [6.187, -75.975]]
 
 
 def ingresarCoordenadas():
@@ -103,12 +103,128 @@ def actualizarCoordenadas(posicion, listaCoordenadas):
         return True
     else:
         return False
+
+
 ###########fin reto3 #######
+###########inicio reto4 #######
+r = 6373
+zonasWifiDistancias = []
+zonaswifi = [[6.124, -75.946, 1035], [6.125, -75.966, 109],
+             [6.135, -75.976, 31], [6.144, -75.836, 151]]
+
+
+def calcularDistancia(coordenada):
+    for x in range(len(zonaswifi)):
+        coordenadaZonaWifi = zonaswifi[x]
+        lat1 = coordenada[0]
+        lon1 = coordenada[1]
+        lat2 = coordenadaZonaWifi[0]
+        lon2 = coordenadaZonaWifi[1]
+        latdelta = lat2-lat1
+        londelta = lon2-lon1
+        operacion = math.sin(londelta/2)**2
+        operacion = operacion*(math.cos(lat1)*math.cos(lat2))
+        operacion = (math.sin(latdelta/2)**2)*operacion
+        operacion = math.sqrt(operacion)
+        operacion = math.asin(operacion)
+        operacion = (2*r)*operacion
+        operacion = operacion*1000
+        operacion = round(operacion)
+
+        lista = [operacion, coordenadaZonaWifi[0],
+                 coordenadaZonaWifi[1], coordenadaZonaWifi[2]]
+        zonasWifiDistancias.append(lista)
+    return zonasWifiDistancias
+
+
+def mostrarMasCercana(Distancia):
+    control = True
+    cont = 1
+    mostrarprimero = []
+    mostrarsegundo = []
+    segundo = 0
+    posicion = 0
+    copiaLista = list(Distancia)
+    while control:
+        for x in range(len(copiaLista)):
+            if x == 0:
+                segundo = copiaLista[x][0]
+                mostrarsegundo = copiaLista[x]
+            elif segundo > copiaLista[x][0]:
+                segundo = copiaLista[x][0]
+                mostrarsegundo = copiaLista[x]
+                posicion = x
+        if cont == 2:
+            control = False
+        else:
+            copiaLista.pop(posicion)
+            mostrarprimero = mostrarsegundo
+            cont = cont+1
+    return [mostrarprimero, mostrarsegundo]
+
+
+def mostrarWifiCercanas(lista):
+    primero = lista[0]
+    segundo = lista[1]
+    print(f"La zona wifi 1: ubicada en ['{primero[1]}','{primero[2]}'] a {primero[0]} metros , tiene en promedio {primero[3]} usuarios\nLa zona wifi 2: ubicada en ['{segundo[1]}','{segundo[2]}'] a {segundo[0]} metros , tiene en promedio {segundo[3]} usuarios")
+
+
+def direccionZonaWifi(usuario, zonaWifi):
+    msj = ""
+    msj1 = ""
+    if usuario[1] > zonaWifi[2]:
+        msj = "occidente"
+    else:
+        msj = "oriente"
+
+    if usuario[0] > zonaWifi[1]:
+        msj1 = "sur"
+    else:
+        msj1 = "norte"
+    print(
+        f"Para llegar a la zona wifi dirigirse primero al {msj} y luego hacia el {msj1}")
+
+
+def menuCalcularDistancia(usuario):
+    listaDistancias = calcularDistancia(usuario)
+    listaDistancias = mostrarMasCercana(listaDistancias)
+    if listaDistancias[0][3] > listaDistancias[1][3]:
+        optionTexto = listaDistancias[1]
+        listaDistancias.remove(optionTexto)
+        listaDistancias.insert(0, optionTexto)
+    return listaDistancias
+
+
+def tiempoViaje(ZonaWifi):
+    msjTiempoBus = "segundos"
+    msjTiempoAuto = "segundos"
+    distancia = ZonaWifi[0]
+    tiempoBus = distancia/16.67
+    if tiempoBus > 60:
+        tiempoBus = round(tiempoBus/60)
+        msjTiempoBus = "minutos"
+    tiempoAuto = distancia/20.83
+    if tiempoAuto > 60:
+        tiempoAuto = round(tiempoAuto/60)
+        msjTiempoAuto = "minutos"
+    print(
+        f"El tiempo promedio que tardaría en Bus = {tiempoBus} {msjTiempoBus}\nEl tiempo promedio que tardaría en Auto = {tiempoAuto} {msjTiempoAuto}")
+
+
+def subMenuWifiCercanas(usuario, listaDistancias):
+    direccionZonaWifi(usuario, listaDistancias)
+    tiempoViaje(listaDistancias)
+
+###########fin reto4 #######
 
 
 os.system('cls')
 print("Bienvenido al sistema de ubicación para zonas públicas WIFI")
-if input("Ingrese su nombre de usuario: ") == usuarioGuardado and input("Ingrese su contraseña: ") == contrasenaGuardado:
+LoguinUsuario = input("Ingrese su nombre de usuario: ")
+
+if LoguinUsuario == "Tripulante2022":
+    print("Este fue mi primer programa y vamos por más")
+elif LoguinUsuario == usuarioGuardado and input("Ingrese su contraseña: ") == contrasenaGuardado:
     if (input(f"{capcha1} + {capcha2} = ") == "213"):
         os.system('cls')
         print("Sesión iniciada")
@@ -116,7 +232,17 @@ if input("Ingrese su nombre de usuario: ") == usuarioGuardado and input("Ingrese
             for x in range(len(listMenu)):
                 print(f"{x+1}. {listMenu[x]}")
             optionMenu = int(input("Elija una opción "))
-            if ((optionMenu <= len(listMenu)) and (optionMenu >= 0)):
+            if optionMenu == 2021:
+                os.system('cls')
+                hemisferio = int(
+                    input("Dame una latitud y te diré cual hemisferio es… "))
+                if hemisferio > 0:
+                    print("Usted está en hemisferio norte")
+                    contadorFallas = 4
+                else:
+                    print("Usted está en hemisferio sur")
+                    contadorFallas = 4
+            elif((optionMenu <= len(listMenu)) and (optionMenu >= 0)):
                 optionMenuNombre = listMenu[optionMenu-1]
 
                 if optionMenuNombre == opt1:
@@ -129,7 +255,6 @@ if input("Ingrese su nombre de usuario: ") == usuarioGuardado and input("Ingrese
                         os.system('cls')
                         print("Error")
                         contadorFallas = 4
-
                 elif optionMenuNombre == opt2:
                     os.system('cls')
                     if (coordenadas == []):
@@ -170,15 +295,43 @@ if input("Ingrese su nombre de usuario: ") == usuarioGuardado and input("Ingrese
                             os.system('cls')
                             print("Error actualización")
                             contadorFallas = 4
-
                 elif optionMenuNombre == opt3:
-                    contadorFallas = msjOption(optionMenu)
+                    os.system('cls')
+                    if (coordenadas == []):
+                        print("Error sin registro de coordenadas")
+                        contadorFallas = 4
+                    else:
+                        mostrarListaCoordenadas(coordenadas)
+                        option = input(
+                            "Por favor elija su ubicación actual(1, 2 ó 3) para calcular la distancia a los puntos de conexión ")
+                        if int(option) == 1 or int(option) == 2 or int(option) == 3:
+                            usuario = coordenadas[(int(option)-1)]
+                            listaDistancias = menuCalcularDistancia(
+                                usuario)
+                            os.system('cls')
+                            print("Zonas wifi cercanas con menos usuarios")
+                            mostrarWifiCercanas(listaDistancias)
+                            optionIndicacion = input(
+                                "Elija 1 o 2 para recibir indicaciones de  llegada ")
+                            if int(optionIndicacion) == 1 or int(optionIndicacion) == 2:
+                                subMenuWifiCercanas(
+                                    usuario, listaDistancias[int(optionIndicacion)-1])
+                                if input("Presione 0 para salir ") == "0":
+                                    os.system('cls')
+                                else:
+                                    print("Error zona wifi")
+                                    contadorFallas = 4
+                            else:
+                                print("Error zona wifi")
+                                contadorFallas = 4
+                        else:
+                            print("Error ubicación")
+                            contadorFallas = 4
                 elif optionMenuNombre == opt4:
                     contadorFallas = msjOption(optionMenu)
                 elif optionMenuNombre == opt5:
                     contadorFallas = msjOption(optionMenu)
                 elif optionMenuNombre == opt6:
-                    #contadorFallas = 0
                     optionMenu6 = int(input("Seleccione opción favorita "))
                     if optionMenu6 == 1 or optionMenu6 == 2 or optionMenu6 == 3 or optionMenu6 == 4 or optionMenu6 == 5:
                         if input("De muchos hijos que somos, el primero yo nací, pero soy el menor de todos. ¿Cómo puede ser así?,¿sabes cuál número soy? ") == "1" and input("Soy más de uno sin llegar a tres y llego a cuatro cuando dos me des. ¿Cuál número soy? ") == "2":
